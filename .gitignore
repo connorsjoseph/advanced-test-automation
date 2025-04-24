@@ -1,0 +1,64 @@
+# IDE specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.classpath
+.project
+
+# Build directories
+target/
+build/
+out/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+${report.path}/
+test-output/
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Test reports and results
+test-output/
+reports/
+ExtentReports/
+screenshots/
+
+# Excel temporary files
+~$*.xlsx
+~$*.xls
+
+# Properties files (except the templates)
+*.properties
+!src/test/resources/*.properties
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Maven specific
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Cucumber reports
+cucumber-reports/
+cucumber.json
+
+# WebDriver binaries
+drivers/
+*.exe
+chromedriver*
+geckodriver*

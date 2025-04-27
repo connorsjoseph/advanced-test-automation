@@ -1,11 +1,16 @@
 package core.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigReader {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigReader.class);
     private final Properties properties;
+    private static final String DEFAULT_ENV = "qa";
 
     public ConfigReader() {
         properties = new Properties();
@@ -13,21 +18,43 @@ public class ConfigReader {
     }
 
     private void loadProperties() {
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+        String env = System.getProperty("env", DEFAULT_ENV);
+        String configFile = String.format("config/%s.properties", env.toLowerCase());
+
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream(configFile)) {
             if (input == null) {
-                throw new IllegalStateException("Unable to find config.properties");
+                logger.error("Unable to find {}", configFile);
+                // Fallback to default config.properties if environment specific file is not found
+                try (InputStream defaultInput = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+                    if (defaultInput == null) {
+                        throw new IllegalStateException("Unable to find config.properties");
+                    }
+                    properties.load(defaultInput);
+                    logger.info("Loaded default config.properties");
+                }
+            } else {
+                properties.load(input);
+                logger.info("Loaded configuration for environment: {}", env);
             }
-            properties.load(input);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load config.properties", e);
+            throw new RuntimeException("Failed to load configuration", e);
         }
     }
 
     public String getConfigValue(String key) {
         String value = System.getProperty(key); // Allow command line override
-        return value != null ? value : properties.getProperty(key);
+        if (value != null) {
+            return value;
+        }
+
+        value = properties.getProperty(key);
+        if (value == null) {
+            logger.warn("Configuration key not found: {}", key);
+        }
+        return value;
     }
 
+    // Existing methods remain unchanged
     public String getBrowser() {
         return getConfigValue("browser");
     }
@@ -40,7 +67,6 @@ public class ConfigReader {
         return getConfigValue("login.url");
     }
 
-    // New methods for parallel execution and browser configuration
     public boolean isParallelExecution() {
         return Boolean.parseBoolean(getConfigValue("parallel.tests"));
     }
@@ -56,5 +82,10 @@ public class ConfigReader {
     
     public String getBrowserVersion(String browser) {
         return getConfigValue(browser + ".version");
+    }
+
+    // New helper method to get environment
+    public String getCurrentEnvironment() {
+        return System.getProperty("env", DEFAULT_ENV);
     }
 }
